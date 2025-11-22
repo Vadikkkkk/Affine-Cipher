@@ -30,7 +30,7 @@ public class Main {
 
     public static void main(String[] args) {
         // Проверка лимита запусков
-        if (!Logger.checkLaunch()) {
+        if (!Logger.writeLog()) {
             JOptionPane.showMessageDialog(null,
                     "Достигнут лимит запусков программы!\n" +
                             "Или целостность файлов была нарушена!\n" +

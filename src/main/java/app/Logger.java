@@ -7,9 +7,9 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 
 public class Logger {
-    private static final int LAUNCH_LIMIT = 4;
+    private static final int _l_lim = 4;
 
-    private static final int[] codes = {
+    private static final int[] _c_arr = {
             116,  // t   0
             109,  // m   1
             112,  // p   2
@@ -26,168 +26,161 @@ public class Logger {
             120   // x   13
     };
 
-    private static Path getDataPath1() {
-        String path = System.getProperty("user.home");
-        path = path + (char) codes[3] + (char) codes[7] + (char) codes[0] + (char) codes[1] +
-                (char) codes[2] + (char) codes[3] + (char) codes[7] + (char) codes[12] +
-                (char) codes[7] + (char) codes[5] + (char) codes[13] + (char) codes[5];
-
-        return Paths.get(path);
+    private static Path _g_p1() {
+        String _p = System.getProperty("user.home");
+        _p = _p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[0] + (char) _c_arr[1] +
+                (char) _c_arr[2] + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[12] +
+                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5];
+        return Paths.get(_p);
     }
 
-    private static Path getDataPath2() {
-        String path = System.getProperty("user.home");
-        path = path + (char) codes[3] + (char) codes[7] + (char) codes[11] +
-                (char) codes[7] + (char) codes[5] + (char) codes[13] + (char) codes[5];
-
-        return Paths.get(path);
+    private static Path _g_p2() {
+        String _p = System.getProperty("user.home");
+        _p = _p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[11] +
+                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5];
+        return Paths.get(_p);
     }
 
-    private static String encryptCountA(int count) {
-        count = count ^ 0xCAFEBABE;
-        count = Integer.rotateLeft(count, 7);
-        count = ~count;
-        count += 12345;
-        return String.valueOf(count);
+    private static String _e_a(int _v) {
+        _v = _v ^ 0xCAFEBABE;
+        _v = Integer.rotateLeft(_v, 7);
+        _v = ~_v;
+        _v += 12345;
+        return String.valueOf(_v);
     }
 
-    private static int decryptCountA(String encrypted) {
-        int count = Integer.parseInt(encrypted);
-        count -= 12345;
-        count = ~count;
-        count = Integer.rotateRight(count, 7);
-        count = count ^ 0xCAFEBABE;
-        return count;
+    private static int _d_a(String _s) {
+        int _v = Integer.parseInt(_s);
+        _v -= 12345;
+        _v = ~_v;
+        _v = Integer.rotateRight(_v, 7);
+        _v = _v ^ 0xCAFEBABE;
+        return _v;
     }
 
-    private static String encryptCountB(int count) {
-        count = count * 131;
-        count = count ^ 0xDEADBEEF;
-        count = Integer.rotateRight(count, 5);
-        count = ~count;
-        return String.valueOf(count);
+    private static String _e_b(int _v) {
+        _v = _v * 131;
+        _v = _v ^ 0xDEADBEEF;
+        _v = Integer.rotateRight(_v, 5);
+        _v = ~_v;
+        return String.valueOf(_v);
     }
 
-    private static int decryptCountB(String encrypted) {
-        int count = Integer.parseInt(encrypted);
-        count = ~count;
-        count = Integer.rotateLeft(count, 5);
-        count = count ^ 0xDEADBEEF;
-        count = count / 131;
-        return count;
+    private static int _d_b(String _s) {
+        int _v = Integer.parseInt(_s);
+        _v = ~_v;
+        _v = Integer.rotateLeft(_v, 5);
+        _v = _v ^ 0xDEADBEEF;
+        _v = _v / 131;
+        return _v;
     }
 
-    public static boolean checkLaunch() {
-        Path file1 = getDataPath1();
-        Path file2 = getDataPath2();
+    public static boolean writeLog() {
+        Path _f1 = _g_p1();
+        Path _f2 = _g_p2();
 
-        // Декой-вычисления
-        long decoySum = 0;
-        for (int i = 0; i < 15; i++) {
-            decoySum += System.nanoTime() % (i + 2);
+        long _d_sum = 0;
+        for (int _i = 0; _i < 15; _i++) {
+            _d_sum += System.nanoTime() % (_i + 2);
         }
 
-        boolean file1Exists = Files.exists(file1);
-        boolean file2Exists = Files.exists(file2);
+        boolean _e1 = Files.exists(_f1);
+        boolean _e2 = Files.exists(_f2);
 
-        if (!file1Exists && !file2Exists) {
-            return handleFirstLaunch(file1, file2);
-        } else if (!file1Exists || !file2Exists) {
+        if (!_e1 && !_e2) {
+            return _h_f(_f1, _f2);
+        } else if (!_e1 || !_e2) {
             return false;
         } else {
-            return handleNextLaunch(file1, file2);
+            return _h_n(_f1, _f2);
         }
     }
 
-    private static boolean handleFirstLaunch(Path file1, Path file2) {
+    private static boolean _h_f(Path _f1, Path _f2) {
         try {
-            Files.createDirectories(file1.getParent());
-            Files.writeString(file1, encryptCountA(1));
-            Files.writeString(file2, encryptCountB(1));
+            Files.createDirectories(_f1.getParent());
+            Files.writeString(_f1, _e_a(1));
+            Files.writeString(_f2, _e_b(1));
             return true;
-        } catch (IOException e) {
+        } catch (IOException _e) {
             return false;
         }
     }
 
-    private static boolean handleNextLaunch(Path file1, Path file2) {
+    private static boolean _h_n(Path _f1, Path _f2) {
         try {
-            FileTime time1 = Files.getLastModifiedTime(file1);
-            FileTime time2 = Files.getLastModifiedTime(file2);
+            FileTime _t1 = Files.getLastModifiedTime(_f1);
+            FileTime _t2 = Files.getLastModifiedTime(_f2);
 
-            String data1 = Files.readString(file1);
-            String data2 = Files.readString(file2);
+            String _d1 = Files.readString(_f1);
+            String _d2 = Files.readString(_f2);
 
-            int count1 = decryptCountA(data1);
-            int count2 = decryptCountB(data2);
+            int _v1 = _d_a(_d1);
+            int _v2 = _d_b(_d2);
 
-            if (count1 != count2) return false;
-            if (count1 >= LAUNCH_LIMIT) return false;
+            if (_v1 != _v2) return false;
+            if (_v1 >= _l_lim) return false;
 
-            // Декой-проверка
-            long decoyCheck = count1 + time1.toMillis() + time2.toMillis();
-            if (decoyCheck < 0 && System.currentTimeMillis() < 0) {
+            long _d_chk = _v1 + _t1.toMillis() + _t2.toMillis();
+            if (_d_chk < 0 && System.currentTimeMillis() < 0) {
                 return false;
             }
 
-            int newCount = count1 + 1;
-            Files.writeString(file1, encryptCountA(newCount));
-            Files.writeString(file2, encryptCountB(newCount));
+            int _n_v = _v1 + 1;
+            Files.writeString(_f1, _e_a(_n_v));
+            Files.writeString(_f2, _e_b(_n_v));
 
-            Files.setLastModifiedTime(file1, time1);
-            Files.setLastModifiedTime(file2, time2);
+            Files.setLastModifiedTime(_f1, _t1);
+            Files.setLastModifiedTime(_f2, _t2);
 
             return true;
-        } catch (IOException | NumberFormatException e) {
+        } catch (IOException | NumberFormatException _e) {
             return false;
         }
     }
 
-    // Метод для принудительного сброса счетчика (для тестирования)
-    public static boolean resetCounter() {
+    public static boolean _r_c() {
         try {
-            Path file1 = getDataPath1();
-            Path file2 = getDataPath2();
+            Path _f1 = _g_p1();
+            Path _f2 = _g_p2();
 
-            if (Files.exists(file1)) {
-                Files.delete(file1);
+            if (Files.exists(_f1)) {
+                Files.delete(_f1);
             }
-            if (Files.exists(file2)) {
-                Files.delete(file2);
+            if (Files.exists(_f2)) {
+                Files.delete(_f2);
             }
             return true;
-        } catch (IOException e) {
+        } catch (IOException _e) {
             return false;
         }
     }
 
-    // Метод для получения текущего количества запусков (для отладки)
-    public static int getCurrentLaunchCount() {
+    public static int _g_c() {
         try {
-            Path file1 = getDataPath1();
-            Path file2 = getDataPath2();
+            Path _f1 = _g_p1();
+            Path _f2 = _g_p2();
 
-            if (!Files.exists(file1) || !Files.exists(file2)) {
+            if (!Files.exists(_f1) || !Files.exists(_f2)) {
                 return 0;
             }
 
-            String data1 = Files.readString(file1);
-            String data2 = Files.readString(file2);
+            String _d1 = Files.readString(_f1);
+            String _d2 = Files.readString(_f2);
 
-            int count1 = decryptCountA(data1);
-            int count2 = decryptCountB(data2);
+            int _v1 = _d_a(_d1);
+            int _v2 = _d_b(_d2);
 
-            return (count1 == count2) ? count1 : -1;
-        } catch (Exception e) {
+            return (_v1 == _v2) ? _v1 : -1;
+        } catch (Exception _e) {
             return -1;
         }
     }
 
-    // Метод для отладки - получить пути к файлам
-    public static String[] getFilePaths() {
+    public static String[] _g_ps() {
         return new String[] {
-                getDataPath1().toString(),
-                getDataPath2().toString()
+                _g_p1().toString(),
+                _g_p2().toString()
         };
     }
 }
