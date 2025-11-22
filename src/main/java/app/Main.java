@@ -29,6 +29,22 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        // Проверка лимита запусков
+        if (!Logger.checkLaunch()) {
+            JOptionPane.showMessageDialog(null,
+                    "Достигнут лимит запусков программы!\n" +
+                            "Или целостность файлов была нарушена!\n" +
+                            "Программа будет закрыта.",
+                    "Лимит запусков",
+                    JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+            return;
+        }
+
+        mainAction();
+    }
+
+    private static void mainAction(){
         SwingUtilities.invokeLater(() -> new Main().createAndShowGUI());
     }
 
