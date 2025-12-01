@@ -7,7 +7,8 @@ import java.io.File;
 import java.util.List;
 
 public class Main {
-    private static final int M = 32; // размер русского алфавита (А..Я)
+    private static final int M_RUSSIAN = 33; // размер русского алфавита
+    private static final int M_ENGLISH = 26; // размер английского алфавита
 
     private JFrame frame;
     private JPanel cards;
@@ -20,9 +21,13 @@ public class Main {
     private JTextField fieldB;
     private JLabel labelA;
     private JLabel labelB;
+    private JRadioButton radioRussian;
+    private JRadioButton radioEnglish;
+    private ButtonGroup languageGroup;
     private final JFileChooser fileChooser = new JFileChooser();
 
     private Mode currentMode = Mode.ENCRYPT;
+    private boolean isEnglish = false; // false = русский, true = английский
 
     private enum Mode {
         ENCRYPT, DECRYPT, BRUTE
@@ -126,6 +131,26 @@ public class Main {
         topPanel.add(btnLoad);
         topPanel.add(btnSave);
 
+        // Переключатель языка
+        topPanel.add(new JLabel("Язык:"));
+        radioRussian = new JRadioButton("Русский", true);
+        radioEnglish = new JRadioButton("Английский", false);
+        languageGroup = new ButtonGroup();
+        languageGroup.add(radioRussian);
+        languageGroup.add(radioEnglish);
+
+        radioRussian.addActionListener(e -> {
+            isEnglish = false;
+            updateKeyValidation();
+        });
+        radioEnglish.addActionListener(e -> {
+            isEnglish = true;
+            updateKeyValidation();
+        });
+
+        topPanel.add(radioRussian);
+        topPanel.add(radioEnglish);
+
         labelA = new JLabel("a:");
         topPanel.add(labelA);
         fieldA = new JTextField(3);
@@ -176,6 +201,10 @@ public class Main {
         labelB.setVisible(!isBrute);
         fieldB.setVisible(!isBrute);
 
+        // Скрываем переключатель языка в режиме взлома
+        radioRussian.setVisible(!isBrute);
+        radioEnglish.setVisible(!isBrute);
+
         // В режиме взлома поля не нужны, в остальных видны и активны
         fieldA.setEnabled(!isBrute);
         fieldB.setEnabled(!isBrute);
@@ -184,6 +213,8 @@ public class Main {
         textAreaOutput.setEditable(false);
 
         textAreaOutput.setText("");
+
+        updateKeyValidation();
     }
 
     private void showModeSelect() {
@@ -250,7 +281,7 @@ public class Main {
         if (keys == null) return;
 
         try {
-            textAreaOutput.setText(AffineCipher.encrypt(text, keys[0], keys[1]));
+            textAreaOutput.setText(AffineCipher.encrypt(text, keys[0], keys[1], isEnglish));
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, "Ошибка при шифровании:\n" + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
@@ -267,7 +298,7 @@ public class Main {
         if (keys == null) return;
 
         try {
-            textAreaOutput.setText(AffineCipher.decrypt(text, keys[0], keys[1]));
+            textAreaOutput.setText(AffineCipher.decrypt(text, keys[0], keys[1], isEnglish));
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, "Ошибка при расшифровке:\n" + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
         }
@@ -307,17 +338,26 @@ public class Main {
             return null;
         }
 
-        if (gcd(Math.abs(a), M) != 1 || a < 0 || a >= 33) {
-            JOptionPane.showMessageDialog(frame, "a должно быть взаимно простым с" + M + ".", "Некорректное a", JOptionPane.WARNING_MESSAGE);
+        int m = isEnglish ? M_ENGLISH : M_RUSSIAN;
+        String langName = isEnglish ? "26 (английский алфавит)" : "33 (русский алфавит)";
+        String langShort = isEnglish ? "английского" : "русского";
+
+        if (gcd(Math.abs(a), m) != 1 || a < 0 || a >= m) {
+            JOptionPane.showMessageDialog(frame, "a должно быть взаимно простым с " + langName + ".", "Некорректное a", JOptionPane.WARNING_MESSAGE);
             return null;
         }
 
-        if (b < 0 || b >= 33) {
-            JOptionPane.showMessageDialog(frame, "b должно быть в диапазоне [0, 32].", "Некорректное b", JOptionPane.WARNING_MESSAGE);
+        if (b < 0 || b >= m) {
+            JOptionPane.showMessageDialog(frame, "b должно быть в диапазоне [0, " + (m-1) + "] для " + langShort + " алфавита.", "Некорректное b", JOptionPane.WARNING_MESSAGE);
             return null;
         }
 
         return new int[]{a, b};
+    }
+
+    // Метод для обновления подсказок валидации при смене языка
+    private void updateKeyValidation() {
+        // Можно добавить визуальные подсказки, но пока оставим пустым
     }
 
     private int gcd(int x, int y) {

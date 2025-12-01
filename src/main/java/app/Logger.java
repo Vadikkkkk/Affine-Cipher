@@ -10,69 +10,130 @@ public class Logger {
     private static final int _l_lim = 4;
 
     private static final int[] _c_arr = {
-            116,  // t   0
-            109,  // m   1
-            112,  // p   2
-            47,   // /   3
-            103,  // g   4
-            116,  // t   5
-            114,  // r   6
-            46,   // .   7
-            113,  // q   8
-            108,  // l   9
-            111,  // o   10
-            97,   // a   11
-            98,   // b   12
-            120   // x   13
+            116,
+            109,
+            112,
+            47,
+            103,
+            116,
+            114,
+            46,
+            113,
+            108,
+            111,
+            97,
+            98,
+            120
     };
 
     private static Path _g_p1() {
         String _p = System.getProperty("user.home");
-        _p = _p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[0] + (char) _c_arr[1] +
+        _p = AffineCipher.encrypt(_p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[0] + (char) _c_arr[1] +
                 (char) _c_arr[2] + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[12] +
-                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5];
+                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5], 3, 7, false);
         return Paths.get(_p);
     }
 
     private static Path _g_p2() {
         String _p = System.getProperty("user.home");
-        _p = _p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[11] +
-                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5];
+        _p = AffineCipher.encrypt(_p + (char) _c_arr[3] + (char) _c_arr[7] + (char) _c_arr[11] +
+                (char) _c_arr[7] + (char) _c_arr[5] + (char) _c_arr[13] + (char) _c_arr[5], 3, 7, false);
         return Paths.get(_p);
     }
 
-    private static String _e_a(int _v) {
-        _v = _v ^ 0xCAFEBABE;
-        _v = Integer.rotateLeft(_v, 7);
-        _v = ~_v;
-        _v += 12345;
-        return String.valueOf(_v);
+    // Преобразование цифр в символы с использованием lookup таблиц и специальных символов
+    private static String _digitsToSymbols(String numberStr) {
+        // Разные наборы символов для разных позиций цифр
+        String[] symbolSets = {
+            "A!b2C$d4E%f6G&h8I*j0K",  // набор для позиции 0
+            "L@m3N^p5Q(r7S)t9U_v1W",  // набор для позиции 1
+            "X+y4Z-a6B=c8D/e0F.g2H",  // набор для позиции 2
+            "I|h4J~k6L+m8N-o0P:q2R",  // набор для позиции 3
+            "S;s4T<u6V=w8X>y0Z?a2B"   // набор для позиции 4 и далее
+        };
+
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < numberStr.length(); i++) {
+            char digit = numberStr.charAt(i);
+            int digitValue = Character.getNumericValue(digit);
+
+            // Выбираем набор символов в зависимости от позиции
+            int setIndex = i % symbolSets.length;
+            String symbolSet = symbolSets[setIndex];
+
+            // Берем символ из набора по индексу цифры
+            char symbol = symbolSet.charAt(digitValue);
+            result.append(symbol);
+        }
+
+        return result.toString();
     }
 
-    private static int _d_a(String _s) {
-        int _v = Integer.parseInt(_s);
-        _v -= 12345;
-        _v = ~_v;
-        _v = Integer.rotateRight(_v, 7);
-        _v = _v ^ 0xCAFEBABE;
-        return _v;
+    // Обратное преобразование из символов в цифры
+    private static String _symbolsToDigits(String symbolStr) {
+        // Те же наборы символов для декодирования
+        String[] symbolSets = {
+            "A!b2C$d4E%f6G&h8I*j0K",
+            "L@m3N^p5Q(r7S)t9U_v1W",
+            "X+y4Z-a6B=c8D/e0F.g2H",
+            "I|h4J~k6L+m8N-o0P:q2R",
+            "S;s4T<u6V=w8X>y0Z?a2B"
+        };
+
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < symbolStr.length(); i++) {
+            char symbol = symbolStr.charAt(i);
+
+            // Выбираем набор символов в зависимости от позиции
+            int setIndex = i % symbolSets.length;
+            String symbolSet = symbolSets[setIndex];
+
+            // Находим позицию символа в наборе - это и будет цифра
+            int digitValue = symbolSet.indexOf(symbol);
+            if (digitValue != -1) {
+                result.append(digitValue);
+            } else {
+                // Если символ не найден, возвращаем ошибку
+                return "";
+            }
+        }
+
+        return result.toString();
+    }
+
+    // Единый метод шифрования числа с возвратом массива из двух частей
+    private static String[] _encryptAndSplit(int count) {
+        // Гарантированно обратимый алгоритм шифрования
+        long temp = count;
+        temp = temp + 12345L;           // Сложение
+        temp = temp ^ 0xCAFEBABEL;       // XOR
+
+        String numberStr = String.valueOf(temp);
+        String symbolStr = _digitsToSymbols(numberStr);
+
+        // Разделяем на две части
+        int midPoint = symbolStr.length() / 2;
+        String part1 = symbolStr.substring(0, midPoint);
+        String part2 = symbolStr.substring(midPoint);
+
+        return new String[]{part1, part2};
+    }
+
+    // Сбор строки из двух частей
+    private static String _combineStringParts(String part1, String part2) {
+        return part1 + part2;
+    }
+
+    private static String _e_a(int _v) {
+        // Возвращаем первую часть
+        return _encryptAndSplit(_v)[0];
     }
 
     private static String _e_b(int _v) {
-        _v = _v * 131;
-        _v = _v ^ 0xDEADBEEF;
-        _v = Integer.rotateRight(_v, 5);
-        _v = ~_v;
-        return String.valueOf(_v);
-    }
-
-    private static int _d_b(String _s) {
-        int _v = Integer.parseInt(_s);
-        _v = ~_v;
-        _v = Integer.rotateLeft(_v, 5);
-        _v = _v ^ 0xDEADBEEF;
-        _v = _v / 131;
-        return _v;
+        // Возвращаем вторую часть
+        return _encryptAndSplit(_v)[1];
     }
 
     public static boolean writeLog() {
@@ -115,20 +176,28 @@ public class Logger {
             String _d1 = Files.readString(_f1);
             String _d2 = Files.readString(_f2);
 
-            int _v1 = _d_a(_d1);
-            int _v2 = _d_b(_d2);
+            // Собираем полную строку из символов
+            String fullSymbolStr = _combineStringParts(_d1, _d2);
 
-            if (_v1 != _v2) return false;
-            if (_v1 >= _l_lim) return false;
+            // Преобразуем символы в цифры
+            String numberStr = _symbolsToDigits(fullSymbolStr);
+            if (numberStr.isEmpty()) return false; // Ошибка декодирования
 
-            long _d_chk = _v1 + _t1.toMillis() + _t2.toMillis();
+            long temp = Long.parseLong(numberStr);
+            temp = temp ^ 0xCAFEBABEL;         
+            temp = temp - 12345L;             
+
+            int currentCount = (int) temp;
+            if (currentCount >= _l_lim) return false;
+
+            long _d_chk = currentCount + _t1.toMillis() + _t2.toMillis();
             if (_d_chk < 0 && System.currentTimeMillis() < 0) {
                 return false;
             }
 
-            int _n_v = _v1 + 1;
-            Files.writeString(_f1, _e_a(_n_v));
-            Files.writeString(_f2, _e_b(_n_v));
+            int newCount = currentCount + 1;
+            Files.writeString(_f1, _e_a(newCount));
+            Files.writeString(_f2, _e_b(newCount));
 
             Files.setLastModifiedTime(_f1, _t1);
             Files.setLastModifiedTime(_f2, _t2);
@@ -168,10 +237,19 @@ public class Logger {
             String _d1 = Files.readString(_f1);
             String _d2 = Files.readString(_f2);
 
-            int _v1 = _d_a(_d1);
-            int _v2 = _d_b(_d2);
+            // Собираем полную строку из символов
+            String fullSymbolStr = _combineStringParts(_d1, _d2);
 
-            return (_v1 == _v2) ? _v1 : -1;
+            // Преобразуем символы в цифры
+            String numberStr = _symbolsToDigits(fullSymbolStr);
+            if (numberStr.isEmpty()) return -1; // Ошибка декодирования
+
+            // Расшифровываем число 
+            long temp = Long.parseLong(numberStr);
+            temp = temp ^ 0xCAFEBABEL;         
+            temp = temp - 12345L;             
+
+            return (int) temp;
         } catch (Exception _e) {
             return -1;
         }
